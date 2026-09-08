@@ -51,21 +51,26 @@ manifest.json → Component.js → ui5.yaml / package.json / xs-app.json
 → formatter/util → fragment'lar → geri kalan controller'lar
 ```
 
-### 2. Claude Code ile (lokal)
+### 2. Claude Code skill'i olarak *(önerilen)*
 
-Bu repoyu analiz edeceğin projenin yanına klonla ve referans olarak ver:
+Uygulamana kur, VS Code'da `/fiori-modernizasyon` yazarak çalıştır:
 
 ```bash
-git clone https://github.com/HuseyinAykin/CodeReviewSAPUI5.git
+git clone https://github.com/HuseyinAykin/CodeReviewSAPUI5.git ~/CodeReviewSAPUI5
+cd ~/CodeReviewSAPUI5
+./claude-setup/install.sh /yol/fiori-uygulaman            # sadece skill
+./claude-setup/install.sh /yol/fiori-uygulaman --with-tooling   # + ESLint/Prettier/Karma/CI
 ```
 
-Sonra Claude Code oturumunda:
-```
-../CodeReviewSAPUI5/SAPUI5-MODERNIZATION-PLAYBOOK.md dosyasını oku ve
-bu projeyi ona göre analiz et.
-```
+| Komut | Ne yapar |
+|---|---|
+| `/fiori-modernizasyon` | Tam analiz, kod değiştirmez |
+| `/fiori-modernizasyon duzelt` | Analiz + Quick Win'leri uygular |
+| `/fiori-modernizasyon startup` | Sadece açılış performansı |
+| `/fiori-modernizasyon odata` | Sadece OData V2 katmanı |
+| `/fiori-modernizasyon UX-003` | Sadece o issue |
 
-Alternatif: playbook'u projenin kök dizinine `CLAUDE.md` olarak kopyalarsan Claude Code her oturumda otomatik yükler.
+Detay: 📖 **[`claude-setup/KURULUM.md`](./claude-setup/KURULUM.md)**
 
 ### 3. Statik analiz ile başla
 
