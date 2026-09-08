@@ -1353,6 +1353,9 @@ karma.conf.js
 
 ## Ek A — Hızlı Komut Referansı
 
+> Bu komutların çalışması için gereken config dosyaları hazır olarak `templates/` klasöründedir
+> (ESLint, Prettier, ui5.yaml, karma, CI workflow, package.json script'leri).
+
 ```bash
 # Statik analiz (SAP resmi aracı — deprecated API + global erişim yakalar)
 npx ui5lint

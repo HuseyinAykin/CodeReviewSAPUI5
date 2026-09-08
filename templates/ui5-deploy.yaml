@@ -1,0 +1,39 @@
+# ui5-deploy.yaml — BTP Cloud Foundry (HTML5 Application Repository) deploy build'i
+# Hedef dosya: <proje kökü>/ui5-deploy.yaml
+#
+# Kullanım: ui5 build --config ui5-deploy.yaml --clean-dest
+# Kurulum:  npm i -D ui5-task-zipper
+#
+# UX-005 (cache) ile ilişki: CF'de içerik versiyonlaması HTML5 App Repo tarafından yapılır.
+# ABAP'a özgü sap-ui-cachebuster mekanizması BU STACK'TE GEÇERSİZDİR (Playbook 6 / UX-005).
+# Cache tazeliği için kritik olan, her deploy'da manifest.json "applicationVersion.version"
+# değerinin artması ve Work Zone site'ının republish edilmesidir.
+
+specVersion: "3.2"
+
+metadata:
+  name: my.app
+
+type: application
+
+framework:
+  name: SAPUI5
+  version: "1.120.42"
+  libraries:
+    - name: sap.ui.core
+    - name: sap.m
+    - name: sap.f
+    - name: themelib_sap_horizon
+
+builder:
+  resources:
+    excludes:
+      - "/test/**"
+      - "/localService/**"
+
+  customTasks:
+    - name: ui5-task-zipper
+      afterTask: generateVersionInfo
+      configuration:
+        archiveName: my-app
+        additionalFiles: []

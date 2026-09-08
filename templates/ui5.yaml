@@ -1,0 +1,70 @@
+# ui5.yaml — geliştirme + production build
+# Hedef dosya: <proje kökü>/ui5.yaml
+#
+# Kritik: `ui5 build --clean-dest` bu dosyayı kullanarak Component-preload.js üretir.
+# Preload üretilmezse startup'ta 50-200 ekstra request oluşur (Playbook 4.2 #1).
+
+specVersion: "3.2"
+
+metadata:
+  name: my.app                      # ← manifest.json "sap.app".id ile AYNI olmalı
+
+type: application
+
+framework:
+  name: SAPUI5
+  version: "1.120.42"               # ← runtime ile birebir aynı tut
+  libraries:
+    # Sadece GERÇEKTEN kullanılan lib'ler. Her fazlalık indirme maliyeti (Playbook 5.1).
+    - name: sap.ui.core
+    - name: sap.m
+    - name: sap.f
+    - name: themelib_sap_horizon
+    # - name: sap.ui.table         # büyük tablo gerekiyorsa
+    # - name: sap.ui.export        # Excel export gerekiyorsa
+    # - name: sap.ushell           # sadece FLP API'si doğrudan kullanılıyorsa
+
+builder:
+  resources:
+    # Test ve mock kaynakları production paketine GİRMESİN (bundle size + güvenlik)
+    excludes:
+      - "/test/**"
+      - "/localService/**"
+
+  # İsteğe bağlı: bundle'ı bölmek istersen. Varsayılan bundling çoğu app için yeterlidir —
+  # önce ölç (Playbook 10), gerçekten gerekmiyorsa bu bloğu HİÇ ekleme.
+  #
+  # bundles:
+  #   - bundleDefinition:
+  #       name: my/app/Component-preload.js
+  #       defaultFileTypes: [".js", ".fragment.xml", ".view.xml", ".properties", ".json"]
+  #       sections:
+  #         - mode: preload
+  #           filters:
+  #             - my/app/
+  #             - my/app/manifest.json
+  #             - "!my/app/test/"
+  #             - "!my/app/localService/"
+  #           resolve: false
+  #           renderer: false
+  #     bundleOptions:
+  #       optimize: true
+  #       usePredefineCalls: true
+
+server:
+  customMiddleware:
+    # Backend proxy — geliştirme ortamı için. Kendi ortamına göre uyarla.
+    - name: fiori-tools-proxy
+      afterMiddleware: compression
+      configuration:
+        ignoreCertError: false
+        backend:
+          - path: /sap
+            url: https://<s4-host>:<port>
+            destination: <destination-name>
+        ui5:
+          path:
+            - /resources
+            - /test-resources
+          url: https://ui5.sap.com
+          version: "1.120.42"

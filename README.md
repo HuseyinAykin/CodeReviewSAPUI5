@@ -30,6 +30,14 @@ SAP Fiori / SAPUI5 uygulamaları için kalıcı **modernizasyon & code review re
 - **Rapor şablonu** ve **hedef mimari**
 - **Anti-öneriler** — bilinçli olarak yapılmaması gerekenler
 
+## Hazır config'ler
+
+📁 **[`templates/`](./templates/)** — projeye doğrudan kopyalanabilir dosyalar:
+ESLint (SAPUI5 anti-pattern kurallarıyla), Prettier, `ui5.yaml`, `ui5-deploy.yaml`,
+Karma, `package.json` script'leri, CI workflow ve analiz rapor şablonu.
+
+Bu klasör **UX-006**'yı (statik analiz eksikliği) uygulama kodu görülmeden kapatır.
+
 ## Kullanım
 
 ### 1. Manuel (herhangi bir Claude oturumunda)

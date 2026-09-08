@@ -1,0 +1,6 @@
+dist/
+node_modules/
+webapp/localService/
+webapp/test/mockdata/
+*.properties
+Component-preload.js

@@ -1,0 +1,45 @@
+// package.json içine eklenecek bölümler (UX-006)
+// Bu bir tam package.json DEĞİL — mevcut dosyana bu alanları birleştir.
+{
+  "scripts": {
+    // --- Statik analiz ---
+    "lint:ui5":   "ui5lint",                                  // SAP resmi: deprecated API + global sap.* + sync loading
+    "lint:ui5:d": "ui5lint --details",                        // açıklamalı çıktı
+    "lint:js":    "eslint webapp",
+    "lint":       "npm run lint:ui5 && npm run lint:js",
+
+    // --- Format ---
+    "format":       "prettier --write \"webapp/**/*.{js,json,xml}\"",
+    "format:check": "prettier --check \"webapp/**/*.{js,json,xml}\"",
+
+    // --- Test ---
+    "test": "karma start --single-run",
+
+    // --- Build ---
+    "build":        "ui5 build --clean-dest",
+    "build:deploy": "ui5 build --config ui5-deploy.yaml --clean-dest",
+
+    // --- Build doğrulama: Component-preload üretildi mi? (Playbook 4.2 #1) ---
+    "verify:preload": "test -f dist/Component-preload.js || (echo 'HATA: Component-preload.js uretilmedi' && exit 1)",
+
+    // --- CI kapısı ---
+    "verify": "npm run lint && npm run format:check && npm run test && npm run build && npm run verify:preload",
+
+    // --- Geliştirme ---
+    "start": "ui5 serve --open index.html"
+  },
+
+  "devDependencies": {
+    "@ui5/cli": "^3.11.0",          // ⚠️ v3+ ZORUNLU: v2'nin terser'ı ?. ve ?? syntax'ını parse edemez
+    "@ui5/linter": "^1.0.0",        // ← UX-006'nın ana aracı
+    "eslint": "^9.0.0",
+    "globals": "^15.0.0",
+    "prettier": "^3.0.0",
+    "karma": "^6.4.0",
+    "karma-ui5": "^4.0.0",
+    "karma-qunit": "^4.2.0",
+    "karma-chrome-launcher": "^3.2.0",
+    "karma-coverage": "^2.2.0",
+    "ui5-task-zipper": "^3.1.0"     // CF deploy paketleme
+  }
+}

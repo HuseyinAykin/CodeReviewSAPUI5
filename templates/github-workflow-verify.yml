@@ -1,0 +1,79 @@
+# CI pipeline — statik analiz + test + build doğrulaması (UX-006)
+# Hedef dosya: <proje kökü>/.github/workflows/verify.yml
+#
+# ÖNEMLİ: Bu job MERGE BLOCKER olarak ayarlanmalıdır (branch protection rule).
+# Aksi halde araçlar kurulmuş ama etkisiz kalır — UX-006 kapanmaz.
+
+name: verify
+
+on:
+  pull_request:
+  push:
+    branches: [main, master, develop]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # applicationVersion karşılaştırması için gerekli
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # --- 1. SAP resmi linter: deprecated API, global sap.*, sync loading ---
+      - name: UI5 lint
+        run: npx ui5lint --details
+
+      # --- 2. Genel JS kalitesi + ölü kod ---
+      - name: ESLint
+        run: npx eslint webapp
+
+      # --- 3. Format tutarlılığı ---
+      - name: Prettier check
+        run: npx prettier --check "webapp/**/*.{js,json,xml}"
+
+      # --- 4. Testler ---
+      - name: Unit + integration tests
+        run: npm test
+
+      # --- 5. Production build ---
+      - name: Build
+        run: npx ui5 build --clean-dest
+
+      # --- 6. Component-preload doğrulaması (Playbook 4.2 #1 — en büyük startup katili) ---
+      - name: Verify Component-preload.js
+        run: |
+          if [ ! -f dist/Component-preload.js ]; then
+            echo "::error::Component-preload.js uretilmedi. Startup'ta 50-200 ekstra request olusur."
+            exit 1
+          fi
+          SIZE=$(stat -c%s dist/Component-preload.js)
+          echo "Component-preload.js: $((SIZE / 1024)) KB"
+          if [ "$SIZE" -lt 1024 ]; then
+            echo "::error::Component-preload.js supheli derecede kucuk ($SIZE bayt) - icerik bos olabilir."
+            exit 1
+          fi
+
+      # --- 7. UX-005: applicationVersion artmis mi? ---
+      # Cache sorunlarinin bir numarali kok nedeni versiyonun artmamasidir.
+      # Bu adim sadece PR'larda calisir ve UYARI verir (soft gate).
+      # Ekip alistiktan sonra `exit 1` ile hard gate'e cevirin.
+      - name: Check applicationVersion bump
+        if: github.event_name == 'pull_request'
+        run: |
+          BASE_REF="origin/${{ github.base_ref }}"
+          BASE_VER=$(git show "$BASE_REF:webapp/manifest.json" 2>/dev/null \
+                     | node -pe 'JSON.parse(require("fs").readFileSync(0,"utf8"))["sap.app"].applicationVersion.version' 2>/dev/null || echo "")
+          HEAD_VER=$(node -pe 'JSON.parse(require("fs").readFileSync("webapp/manifest.json","utf8"))["sap.app"].applicationVersion.version')
+          echo "base=$BASE_VER  head=$HEAD_VER"
+          if [ -n "$BASE_VER" ] && [ "$BASE_VER" = "$HEAD_VER" ]; then
+            echo "::warning::manifest.json applicationVersion.version artmadi ($HEAD_VER). Work Zone cache eski icerigi sunabilir (UX-005)."
+          fi

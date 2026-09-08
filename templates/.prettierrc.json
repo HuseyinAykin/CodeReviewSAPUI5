@@ -1,0 +1,20 @@
+{
+    "printWidth": 120,
+    "tabWidth": 4,
+    "useTabs": false,
+    "semi": true,
+    "singleQuote": false,
+    "trailingComma": "none",
+    "bracketSpacing": true,
+    "endOfLine": "lf",
+    "overrides": [
+        {
+            "files": "*.xml",
+            "options": { "printWidth": 140, "tabWidth": 4 }
+        },
+        {
+            "files": ["*.json", "*.jsonc", "manifest.json"],
+            "options": { "tabWidth": 2 }
+        }
+    ]
+}
