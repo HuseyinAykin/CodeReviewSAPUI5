@@ -53,14 +53,30 @@ manifest.json → Component.js → ui5.yaml / package.json / xs-app.json
 
 ### 2. Claude Code skill'i olarak *(önerilen)*
 
-Uygulamana kur, VS Code'da `/fiori-modernizasyon` yazarak çalıştır:
+Repoyu **uygulamanın dışına** klonla (OneDrive dışına), sonra skill'i kur:
+
+```powershell
+# Windows / PowerShell
+git clone https://github.com/HuseyinAykin/CodeReviewSAPUI5.git C:\dev\CodeReviewSAPUI5
+cd C:\dev\CodeReviewSAPUI5
+.\claude-setup\install.ps1 -User
+```
 
 ```bash
+# Git Bash / macOS / Linux
 git clone https://github.com/HuseyinAykin/CodeReviewSAPUI5.git ~/CodeReviewSAPUI5
 cd ~/CodeReviewSAPUI5
-./claude-setup/install.sh /yol/fiori-uygulaman            # sadece skill
-./claude-setup/install.sh /yol/fiori-uygulaman --with-tooling   # + ESLint/Prettier/Karma/CI
+./claude-setup/install.sh --user
 ```
+
+`--user` / `-User` skill'i `~/.claude/skills/` altına kurar → **bütün projelerinde** çalışır.
+Tek bir projeye kurmak ve tooling config'lerini de almak için:
+
+```bash
+./claude-setup/install.sh /yol/uygulaman --with-tooling
+```
+
+Sonra VS Code'da uygulamayı aç ve yaz:
 
 | Komut | Ne yapar |
 |---|---|
@@ -70,7 +86,7 @@ cd ~/CodeReviewSAPUI5
 | `/fiori-modernizasyon odata` | Sadece OData V2 katmanı |
 | `/fiori-modernizasyon UX-003` | Sadece o issue |
 
-Detay: 📖 **[`claude-setup/KURULUM.md`](./claude-setup/KURULUM.md)**
+Detay, kurulum konumları ve sorun giderme: 📖 **[`claude-setup/KURULUM.md`](./claude-setup/KURULUM.md)**
 
 ### 3. Statik analiz ile başla
 
