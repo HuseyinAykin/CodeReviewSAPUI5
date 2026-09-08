@@ -78,13 +78,16 @@ Tek bir projeye kurmak ve tooling config'lerini de almak için:
 
 Sonra VS Code'da uygulamayı aç ve yaz:
 
-| Komut | Ne yapar |
-|---|---|
-| `/fiori-modernizasyon` | Tam analiz, kod değiştirmez |
-| `/fiori-modernizasyon duzelt` | Analiz + Quick Win'leri uygular |
-| `/fiori-modernizasyon startup` | Sadece açılış performansı |
-| `/fiori-modernizasyon odata` | Sadece OData V2 katmanı |
-| `/fiori-modernizasyon UX-003` | Sadece o issue |
+| Komut | Kod değişir mi | Kapsam |
+|---|---|---|
+| `/fiori-modernizasyon` | ❌ | Tümü |
+| `/fiori-modernizasyon startup` | ❌ | Startup |
+| `/fiori-modernizasyon odata` | ❌ | OData V2 |
+| `/fiori-modernizasyon UX-003` | ❌ | Tek issue |
+| `/fiori-modernizasyon duzelt` | ✅ | Tümü (Quick Win'ler) |
+| `/fiori-modernizasyon duzelt startup` | ✅ | Sadece startup |
+
+Kodu değiştiren tek kelime **`duzelt`**.
 
 **Kurmak istemiyorsan:** bu repo kökünde `.claude/skills/` bulunduğu için klasörü
 Claude Code'a göstermen de yeterli — `/add-dir "<klon-yolu>"` yaz, `/fiori-modernizasyon`

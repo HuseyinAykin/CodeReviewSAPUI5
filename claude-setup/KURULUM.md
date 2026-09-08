@@ -183,17 +183,53 @@ tamamen ortadan kaldırır çünkü dosyaları OneDrive dışına kopyalar.
 
 ## Komut modları
 
-| Komut | Ne yapar |
-|---|---|
-| `/fiori-modernizasyon` | **Tam analiz. Kod DEĞİŞTİRMEZ.** Rapor üretir. |
-| `/fiori-modernizasyon duzelt` | Analiz + Quick Win'leri uygular (davranış etkisi olanları sorar) |
-| `/fiori-modernizasyon startup` | Sadece açılış performansı / startup lifecycle |
-| `/fiori-modernizasyon odata` | Sadece OData V2 / network katmanı |
-| `/fiori-modernizasyon tablo` | Sadece tablo/liste performansı |
-| `/fiori-modernizasyon UX-003` | Sadece o issue maddesi |
+Argüman iki bağımsız eksenden oluşur: **eylem** (kod değişsin mi?) ve **kapsam** (nereye bakılsın?).
 
-**İlk sefer `duzelt` ile başlama.** Önce düz `/fiori-modernizasyon` çalıştır, raporu oku,
-neyin değişeceğini gör. Sonra düzeltmeye geç.
+| Komut | Kod değişir mi | Kapsam |
+|---|---|---|
+| `/fiori-modernizasyon` | ❌ Hayır | Tümü |
+| `/fiori-modernizasyon startup` | ❌ Hayır | Startup |
+| `/fiori-modernizasyon odata` | ❌ Hayır | OData V2 |
+| `/fiori-modernizasyon tablo` | ❌ Hayır | Tablo/liste |
+| `/fiori-modernizasyon UX-003` | ❌ Hayır | Tek issue |
+| **`/fiori-modernizasyon duzelt`** | ✅ **Evet** | Tümü (Quick Win'ler) |
+| **`/fiori-modernizasyon duzelt startup`** | ✅ **Evet** | Sadece startup |
+| **`/fiori-modernizasyon duzelt UX-003`** | ✅ **Evet** | Sadece UX-003 |
+
+**Kodu değiştiren tek kelime `duzelt`.** Geçmiyorsa hiçbir dosyaya dokunulmaz.
+
+### `duzelt` ne yapar, ne yapmaz
+
+**Yapar:** düşük riskli, ölçülebilir kazançlı düzeltmeleri uygular — kullanılmayan lib
+temizliği, `$select` ekleme, lazy dialog, formatter cache, ölü kod, deprecated API,
+memory leak.
+
+**Yapmaz:**
+- Business behaviour'ı etkileyen değişiklikleri **sormadan** uygulamaz
+  (`flexEnabled`, `refreshAfterChange`, `defaultCountMode`, `sap-value-list`,
+  `$select` daraltması, client→server filtreleme)
+- UX-001'i (business/tax logic'i backend'e taşıma) **asla tek başına** yapmaz
+- Kapsam dışına çıkmaz — `duzelt startup` dediysen OData bulgularını raporlar ama uygulamaz
+
+### "Hepsini birden değiştir" modu neden yok
+
+Tek komutla onlarca dosya değiştiğinde, bir regresyon çıktığında hangi değişikliğin
+sebep olduğunu bulamazsın. Production uygulamasında bunun bedeli kazançtan büyüktür.
+
+"Hepsini uygula" demek istiyorsan yine de yapabilirsin — skill kapsamı reddetmez, ama
+grup grup ilerler: bir kategori uygular, gösterir, onay alır, sonrakine geçer.
+
+### `duzelt` öncesi
+
+Skill kod değiştirmeden önce `git status` kontrol eder ve çalışma alanın kirliyse uyarır.
+Yine de alışkanlık haline getir:
+
+```bash
+git status          # temiz olmalı
+git checkout -b fiori-modernizasyon
+```
+
+Böylece beğenmezsen `git checkout .` ile tek komutta geri alırsın.
 
 ## Neden skill, neden `.md` okutmak değil?
 

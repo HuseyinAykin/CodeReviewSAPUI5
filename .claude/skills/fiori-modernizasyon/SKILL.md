@@ -1,7 +1,7 @@
 ---
 name: fiori-modernizasyon
 description: SAPUI5 / SAP Fiori uygulamalarını startup performansı, OData V2 request optimizasyonu, controller mimarisi, rendering, memory, güvenlik ve Clean Core açısından analiz eder ve refactor eder. Hedef stack SAPUI5 1.120.x + OData V2 + BTP Cloud Foundry + SAP Build Work Zone + Freestyle + S/4HANA On-Premise. Kullanıcı "fiori analizi", "UI5 review", "uygulamayı hızlandır", "açılış süresi", "startup performansı", "Clean Core review", "controller çok büyük", "gereksiz OData çağrısı" dediğinde veya UX-001…UX-006 issue'larından bahsettiğinde kullan.
-argument-hint: "[analiz | duzelt | startup | odata | tablo | UX-001..UX-006]"
+argument-hint: "[duzelt] [startup | odata | tablo | UX-001..UX-006]"
 allowed-tools: Read Grep Glob
 ---
 
@@ -30,16 +30,46 @@ ls -lh dist/Component-preload.js 2>/dev/null || echo "dist/Component-preload.js 
 
 Kullanıcının verdiği argüman: `$ARGUMENTS`
 
-| Argüman | Ne yap |
+Argüman iki bağımsız eksenden oluşur. İkisi birlikte kullanılabilir.
+
+### Eksen 1 — EYLEM (kod değişiyor mu?)
+
+| Kelime | Ne yap |
 |---|---|
-| *(boş)* veya `analiz` | **Tam analiz, kod DEĞİŞTİRME.** Rapor üret. Varsayılan mod. |
-| `duzelt` | Analizi yap, sonra **Quick Win'leri uygula**. Her değişikliği ayrı ayrı, gerekçesiyle. |
-| `startup` | Sadece startup lifecycle + açılış performansı |
-| `odata` | Sadece OData V2 / network katmanı |
-| `tablo` | Sadece tablo/liste performansı |
+| *(yok)* veya `analiz` | **Kod DEĞİŞTİRME.** Sadece analiz et ve rapor üret. **Varsayılan.** |
+| `duzelt` | Analiz et, sonra bulguları uygula (kurallar Bölüm 3). |
+
+### Eksen 2 — KAPSAM (nereye bakılıyor?)
+
+| Kelime | Kapsam |
+|---|---|
+| *(yok)* | Tüm kategoriler |
+| `startup` | Startup lifecycle + açılış performansı |
+| `odata` | OData V2 / network katmanı |
+| `tablo` | Tablo / liste performansı |
 | `UX-001` … `UX-006` | Sadece o issue maddesi |
 
-Argüman anlaşılmıyorsa `analiz` modunda çalış.
+### Örnekler
+
+| Komut | Sonuç |
+|---|---|
+| `/fiori-modernizasyon` | Tüm kategoriler, sadece analiz |
+| `/fiori-modernizasyon startup` | Sadece startup, **sadece analiz** |
+| `/fiori-modernizasyon duzelt` | Tüm kategoriler, Quick Win'ler uygulanır |
+| `/fiori-modernizasyon duzelt startup` | Sadece startup, o alandaki düzeltmeler uygulanır |
+| `/fiori-modernizasyon duzelt UX-003` | Sadece UX-003, düzeltmeleri uygulanır |
+
+**`duzelt` geçmiyorsa hiçbir dosyayı değiştirme** — kapsam kelimesi tek başına asla
+düzeltme yetkisi vermez. Argüman anlaşılmıyorsa tüm kapsamda `analiz` yap.
+
+### "Hepsini değiştir" diye bir mod YOK — bu bilinçli
+
+Tek komutla onlarca dosyayı değiştirmek, bir regresyon çıktığında hangi değişikliğin
+sebep olduğunu bulmayı imkânsız hale getirir. Production uygulamasında bunun bedeli
+kazançtan büyüktür.
+
+Kullanıcı "hepsini uygula" derse: kapsamı reddetme, ama **grup grup ilerle** — her turda
+bir kategori uygula, sonucu göster, onay al, sonrakine geç.
 
 ---
 
@@ -111,7 +141,22 @@ Modun kapsamına giren kategorileri **PLAYBOOK.md Bölüm 5**'ten uygula (18 kat
 
 ## 3. `duzelt` modu — ek kurallar
 
-Analiz bittikten sonra uygulamaya geç. Sırayla:
+### Önce güvenlik ağı (atlanmaz)
+
+Tek satır kod değiştirmeden önce çalışma alanının temiz olduğunu doğrula:
+
+```
+git status --short
+```
+
+- **Commit edilmemiş değişiklik varsa:** kullanıcıya söyle ve önce commit/stash etmesini
+  iste. Aksi halde senin değişikliklerin onunkilerle karışır ve geri alınamaz.
+- **Git deposu değilse:** bunu belirt ve devam etmeden önce onay al. Geri alma imkânı
+  olmadan production kodunu değiştirmek kabul edilemez.
+
+Bu adımı kullanıcı "gerek yok" demedikçe atlama.
+
+### Uygulama kuralları
 
 1. **Önce Quick Win'ler.** Az değişiklik + yüksek kazanç + düşük risk. Sıralama için **PLAYBOOK.md Bölüm 8.1**.
 2. **Her değişiklik ayrı ve gerekçeli.** Toplu 40 dosyalık refactor yapma — regresyon kaynağı bulunamaz.
@@ -125,6 +170,17 @@ Analiz bittikten sonra uygulamaya geç. Sırayla:
    - **UX-001 (business/tax logic backend'e taşıma) → her zaman sor, asla tek başına yapma**
 4. **Test yoksa önce onu söyle.** UX-001 ve UX-002 refactor'leri test altyapısı olmadan kabul edilemez risk taşır.
 5. **Ölçmediysen kazanç iddia etme.** "Muhtemelen %40 hızlanır" yazma. Ölçüm protokolü: **PLAYBOOK.md Bölüm 10**.
+6. **Kapsam dışına çıkma.** `duzelt startup` verildiyse OData veya tablo bulgularını
+   raporla ama **uygulama**. Kullanıcı kapsamı kendisi genişletsin.
+
+### Bitirirken
+
+Değiştirdiğin dosyaları listele ve şunu net söyle:
+
+- Neyi uyguladın
+- Neyi **uygulamadın** ve neden (davranış riski / kapsam dışı / onay bekliyor)
+- Kullanıcının ne test etmesi gerekiyor
+- Ölçüm yaptıysan öncesi/sonrası; yapmadıysan "ölçülmedi" de
 
 ---
 
