@@ -118,6 +118,69 @@ Komutu görmüyorsan oturumu yeniden başlat.
 
 ---
 
+## 4. Kurmadan kullanmak — `/add-dir` ve symlink
+
+Kopyalamak istemiyorsan, klonu olduğu yerde bırakıp Claude Code'a gösterebilirsin.
+Dokümantasyon bunu açıkça destekliyor:
+
+> `--add-dir` ve `/add-dir` dosya erişimi verir, konfigürasyon keşfi değil —
+> **ancak skill'ler ve komutlar istisnadır: Claude Code eklenen her dizindeki
+> `.claude/skills/` ve `.claude/commands/` klasörlerini otomatik yükler.**
+
+Bu repo kökünde `.claude/skills/fiori-modernizasyon/` bulunduğu için, klasörü eklemen yeterli:
+
+```
+/add-dir "C:\Users\<sen>\...\Claude\CodeReviewSAPUI5"
+```
+
+Sonra `/fiori-modernizasyon` kullanılabilir hale gelir.
+
+**Kısıtı:** `/add-dir` oturum başınadır — her yeni Claude Code oturumunda tekrar yazman
+gerekir. Kalıcı istiyorsan CLI'ı `--add-dir` parametresiyle başlat, ya da aşağıdaki
+symlink yöntemini kullan.
+
+### Symlink — kur ama kopyalama
+
+Dokümantasyondan:
+
+> Enterprise, personal veya project konumlarındaki bir `<skill-name>` girdisi, diskteki
+> başka bir dizine **symlink** olabilir. Claude Code symlink'i takip eder ve `SKILL.md`'yi
+> hedef dizinden okur.
+
+Böylece `git pull` yaptığında skill de kendiliğinden güncellenir — kurulumu tekrarlamana
+gerek kalmaz.
+
+```powershell
+# Windows — yönetici PowerShell veya Developer Mode açık olmalı
+New-Item -ItemType SymbolicLink `
+  -Path  "$HOME\.claude\skills\fiori-modernizasyon" `
+  -Target "C:\Users\<sen>\...\Claude\CodeReviewSAPUI5\.claude\skills\fiori-modernizasyon"
+```
+
+```bash
+# macOS / Linux
+ln -s ~/CodeReviewSAPUI5/.claude/skills/fiori-modernizasyon \
+      ~/.claude/skills/fiori-modernizasyon
+```
+
+⚠️ Symlink'te `PLAYBOOK.md` skill klasörüne kopyalanmaz; `SKILL.md` bu durumda reponun
+kökündeki `SAPUI5-MODERNIZATION-PLAYBOOK.md` dosyasını kullanır — ikisi de çalışır.
+
+### Hangisini seçmeli?
+
+| Yöntem | Kalıcı mı | Güncelleme | OneDrive riski |
+|---|---|---|---|
+| **`install.ps1 -User`** *(önerilen)* | ✅ Her oturumda | `git pull` + `-User -Force` | ❌ Yok — dosyalar `C:\Users\<sen>\.claude\` altına kopyalanır |
+| Symlink | ✅ Her oturumda | `git pull` yeter | ⚠️ Klon OneDrive'daysa okuma oradan yapılır |
+| `/add-dir` | ❌ Oturum başına | `git pull` yeter | ⚠️ Aynı |
+
+**OneDrive notu:** Klonun OneDrive altındaysa ve "Files On-Demand" açıksa, dosyalar
+yalnızca bulutta duruyor olabilir. Claude Code okumaya çalıştığında OneDrive önce indirir —
+çalışır ama yavaşlar, çevrimdışıyken de takılabilir. `install.ps1 -User` bu sorunu
+tamamen ortadan kaldırır çünkü dosyaları OneDrive dışına kopyalar.
+
+---
+
 ## Komut modları
 
 | Komut | Ne yapar |
@@ -189,13 +252,14 @@ Doğrudan söyle: *"PLAYBOOK.md Bölüm 4'ü oku ve startup lifecycle haritasın
 Kapsamı daralt. `/fiori-modernizasyon startup` gibi tek konuya odaklanmış çalıştırmalar,
 her şeyi birden istemekten daha derin sonuç verir.
 
-## Kurulumsuz alternatif
+## En son çare: elle okutmak
 
-Tek seferlik bir bakış için kurulum yapmadan da olur — playbook'u uygulamanın yanına
-kopyala ve şunu yaz:
+Skill hiç kurulmadıysa ve `/add-dir` de kullanmıyorsan, playbook'u doğrudan gösterebilirsin.
+Her oturumda tekrar yazman gerekir ve 1400 satırın tamamı context'e girer — bu yüzden
+sadece tek seferlik bir bakış için mantıklı:
 
 ```
-../CodeReviewSAPUI5/SAPUI5-MODERNIZATION-PLAYBOOK.md dosyasını oku.
-Bölüm 3'teki master prompt'a göre bu uygulamayı analiz et.
+"C:\Users\<sen>\...\Claude\CodeReviewSAPUI5\SAPUI5-MODERNIZATION-PLAYBOOK.md"
+dosyasını oku. Bölüm 3'teki master prompt'a göre bu uygulamayı analiz et.
 Önce Bölüm 4'e göre startup lifecycle'ı çıkar, sonra refactor planı üret.
 ```

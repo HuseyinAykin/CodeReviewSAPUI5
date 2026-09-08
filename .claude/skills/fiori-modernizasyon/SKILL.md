@@ -159,19 +159,34 @@ Uzun analizlerde `RAPOR-SABLONU.md` dosyasını doldurulmuş halde üret.
 
 ## 5. Referans dosyaları
 
-Tümünü birden okuma — ihtiyaç duyduğun bölümü oku.
+Detaylı içerik ayrı bir playbook dosyasındadır. **Tümünü birden okuma** — sadece ihtiyaç
+duyduğun bölümü oku.
 
-| Dosya / bölüm | Ne zaman oku |
+### Playbook dosyasını bul
+
+Kuruluma göre iki konumdan birindedir; ilk bulduğunu kullan:
+
+1. `PLAYBOOK.md` — bu skill klasörünün içinde *(install.sh / install.ps1 ile kurulduysa)*
+2. `SAPUI5-MODERNIZATION-PLAYBOOK.md` — reponun kökünde *(/add-dir ile referans verildiyse)*
+
+Aynı şekilde rapor şablonu: `RAPOR-SABLONU.md` veya
+`templates/ANALYSIS-REPORT-TEMPLATE.md`.
+
+İkisi de yoksa playbook olmadan devam et, ama bunu kullanıcıya söyle — bu skill'in
+derinliği o dosyadan gelir.
+
+### Hangi bölüm ne zaman
+
+| Bölüm | Ne zaman oku |
 |---|---|
-| [PLAYBOOK.md](PLAYBOOK.md) **Bölüm 4** | Startup lifecycle haritası, critical path, 10 startup katili |
-| **Bölüm 5** | 18 kategorili audit checklist |
-| **Bölüm 6** | UX-001…UX-006 issue'ları, kök neden ve çözüm desenleri |
-| **Bölüm 7** | Deprecated → modern API tablosu (1.120) |
-| **Bölüm 8** | Refactor önceliklendirme + 17 adımlık sıra |
-| **Bölüm 9** | ÖNCE/SONRA production-ready kod örnekleri |
-| **Bölüm 10** | Ölçüm protokolü ve araçlar |
-| **Bölüm 13** | Anti-öneriler — yazmadan önce kontrol et |
-| [RAPOR-SABLONU.md](RAPOR-SABLONU.md) | Rapor iskeletini doldururken |
+| **4** | Startup lifecycle haritası, critical path, 10 startup katili |
+| **5** | 18 kategorili audit checklist |
+| **6** | UX-001…UX-006 issue'ları, kök neden ve çözüm desenleri |
+| **7** | Deprecated → modern API tablosu (1.120) |
+| **8** | Refactor önceliklendirme + 17 adımlık sıra |
+| **9** | ÖNCE/SONRA production-ready kod örnekleri |
+| **10** | Ölçüm protokolü ve araçlar |
+| **13** | Anti-öneriler — öneri yazmadan önce kontrol et |
 
 ---
 

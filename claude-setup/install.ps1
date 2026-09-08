@@ -111,7 +111,7 @@ Write-Host ""
 Write-Host "Kurulum seviyesi: $ScopeLabel"
 Write-Host ""
 Write-Host "Skill kuruluyor:"
-Copy-One (Join-Path $ScriptDir ".claude/skills/fiori-modernizasyon/SKILL.md") (Join-Path $SkillDir "SKILL.md")
+Copy-One (Join-Path $RepoRoot  ".claude/skills/fiori-modernizasyon/SKILL.md") (Join-Path $SkillDir "SKILL.md")
 Copy-One (Join-Path $RepoRoot  "SAPUI5-MODERNIZATION-PLAYBOOK.md")            (Join-Path $SkillDir "PLAYBOOK.md")
 Copy-One (Join-Path $RepoRoot  "templates/ANALYSIS-REPORT-TEMPLATE.md")       (Join-Path $SkillDir "RAPOR-SABLONU.md")
 

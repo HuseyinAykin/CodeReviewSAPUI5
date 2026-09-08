@@ -101,7 +101,7 @@ echo ""
 echo "Kurulum seviyesi: $SCOPE_LABEL"
 echo ""
 echo "Skill kuruluyor:"
-copy_file "$SCRIPT_DIR/.claude/skills/fiori-modernizasyon/SKILL.md" "$SKILL_DIR/SKILL.md"
+copy_file "$REPO_ROOT/.claude/skills/fiori-modernizasyon/SKILL.md" "$SKILL_DIR/SKILL.md"
 copy_file "$REPO_ROOT/SAPUI5-MODERNIZATION-PLAYBOOK.md"             "$SKILL_DIR/PLAYBOOK.md"
 copy_file "$REPO_ROOT/templates/ANALYSIS-REPORT-TEMPLATE.md"        "$SKILL_DIR/RAPOR-SABLONU.md"
 

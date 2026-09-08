@@ -86,7 +86,11 @@ Sonra VS Code'da uygulamayı aç ve yaz:
 | `/fiori-modernizasyon odata` | Sadece OData V2 katmanı |
 | `/fiori-modernizasyon UX-003` | Sadece o issue |
 
-Detay, kurulum konumları ve sorun giderme: 📖 **[`claude-setup/KURULUM.md`](./claude-setup/KURULUM.md)**
+**Kurmak istemiyorsan:** bu repo kökünde `.claude/skills/` bulunduğu için klasörü
+Claude Code'a göstermen de yeterli — `/add-dir "<klon-yolu>"` yaz, `/fiori-modernizasyon`
+kullanılabilir hale gelsin. (Oturum başınadır; kalıcı istersen symlink kur.)
+
+Detay, kurulum konumları, symlink ve sorun giderme: 📖 **[`claude-setup/KURULUM.md`](./claude-setup/KURULUM.md)**
 
 ### 3. Statik analiz ile başla
 
