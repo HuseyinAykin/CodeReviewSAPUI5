@@ -305,6 +305,8 @@ Her maddede: `[ ]` kontrol edilmedi · `[✓]` uygun · `[✗]` bulgu var (rapor
 - [ ] `onAfterRendering` içinde DOM'a yazılıyor mu? (her render'da tekrar çalışır)
 - [ ] `setModel` tekrar tekrar çağrılıyor mu?
 - [ ] Binding yerine manuel `setProperty`/`setText` döngüleri var mı?
+- [ ] Döngü içinde tek tek `setProperty()` çağrılıyor mu? → tek `setData`/tek seferde yaz
+- [ ] `liveChange` / `change` handler'ında ağır hesap veya OData çağrısı var mı? → **debounce** yok mu?
 - [ ] `busy` state binding ile mi yönetiliyor, manuel mi?
 
 ### 5.7 Controller Architecture
@@ -319,7 +321,8 @@ Her maddede: `[ ]` kontrol edilmedi · `[✓]` uygun · `[✗]` bulgu var (rapor
 - [ ] Gereksiz JSONModel var mı? (OData verisi JSONModel'e kopyalanıyor mu?)
 - [ ] `setSizeLimit` gerekli mi, gereksiz yüksek mi?
 - [ ] `OneWay` yeterliyken `TwoWay` mi kullanılıyor?
-- [ ] Manuel model refresh (`refresh(true)`) gereksiz mi?
+- [ ] `model.refresh(true)` kullanılıyor mu? → tüm binding'leri tazeler; hedefli
+      (`oBinding.refresh()`) alternatifi var mı?
 - [ ] Expression binding aşırı karmaşık mı? (→ formatter'a taşı)
 - [ ] Named model'ler tutarlı mı?
 
@@ -388,6 +391,13 @@ Her maddede: `[ ]` kontrol edilmedi · `[✓]` uygun · `[✗]` bulgu var (rapor
 - [ ] `index.html` (standalone erişim için) `Cache-Control: no-cache` alıyor mu?
 - [ ] Network'te response'ların `ETag` / `Cache-Control` header'ları ne? (DevTools ile doğrula)
 - [ ] Kullanıcılara "cache temizleyin" deniyorsa → süreç bozuk, **UX-005**
+- [ ] **UI5 versiyonu sabitlenmiş mi?** `"latest"` veya versiyonsuz bootstrap kullanılmamalı:
+  - `ui5.yaml` → `framework.version: "1.120.42"`
+  - `index.html` bootstrap `src` → versiyonsuz `https://ui5.sap.com/resources/sap-ui-core.js` **latest'a çözülür**
+  - `manifest.json` → `minUI5Version` gerçekçi ve sabit mi?
+  - Work Zone site konfigürasyonunda UI5 versiyonu override ediliyor mu?
+- [ ] Sabitlenmemişse: SAP yeni sürüm yayınladığında uygulama **sessizce** o sürüme geçer.
+      Deprecated API'ler kırılır, davranış değişir, hata production'da ortaya çıkar.
 
 ### 5.17 Clean Core
 - [ ] Vergi / fiyat / indirim / tutar hesabı frontend'de mi? → **UX-001**, CRITICAL
@@ -395,6 +405,9 @@ Her maddede: `[ ]` kontrol edilmedi · `[✓]` uygun · `[✗]` bulgu var (rapor
 - [ ] Para birimi / ondalık hane mantığı hard-coded mı?
 - [ ] İş kuralı (validation) sadece frontend'de mi? (backend'de de olmalı)
 - [ ] Konfigürasyon (limit, oran, eşik) koda mı gömülü?
+- [ ] Backend tarafında standart SAP nesnesine doğrudan modifikasyon var mı?
+- [ ] Sadece **released API**'ler mi kullanılıyor? (unreleased/internal tablo ve fonksiyon erişimi yok mu?)
+- [ ] Genişletme in-app extensibility ile mi yapılmış (BAdI, RAP extension) yoksa core mu değiştirilmiş?
 
 ### 5.18 Kod Kalitesi & Ölü Kod
 - [ ] Yorum satırına alınmış kod blokları
@@ -497,6 +510,12 @@ sap.ui.define([
 
 **Performans etkisi:** Dolaylı ama gerçek. `onInit` içindeki her satır ilk render'ı geciktirir.
 
+**Bu projede tipik olarak nereye bakmalı:** controller içinde doğrudan yapılan
+irsaliye/PDF üretimi, sipariş oluşturma-güncelleme, kampanya değerlendirme gibi domain
+işleri. Bunlar event handling değil, **iş mantığıdır** — controller'ın işi değil.
+Ayrılacak servis isimleri domain'den gelsin: `PrintService`, `OrderService`,
+`CampaignService`.
+
 **Çözüm — sadece gerektiği kadar katman:**
 
 ```
@@ -564,6 +583,9 @@ Bu madde tek bir problem değil, bir semptom. Alt bileşenlere ayır:
 | Gereksiz `refresh()` | Aynı veri tekrar tekrar çekiliyor | Sadece gerçekten değişen binding'i refresh et |
 | Growing kapalı büyük tablo | İlk render'da binlerce DOM node | `growing` + `growingThreshold` veya `sap.ui.table.Table` |
 | `onAfterRendering` içinde ağır iş | Her render'da tekrar | `onInit`'e taşı veya idempotent yap |
+| `liveChange`'de debounce yok | Her tuş vuruşunda hesap/OData | 300–500 ms debounce |
+| Döngüde tek tek `setProperty()` | Her çağrı binding tetikler | Nesneyi hazırla, **tek** `setData`/`setProperty` |
+| `model.refresh(true)` | Tüm binding'ler tazelenir | Hedefli `oBinding.refresh()` |
 
 ```js
 // ❌ ÖNCE — her satır için yeni formatter instance
@@ -610,6 +632,10 @@ sap.ui.define(["sap/ui/core/format/NumberFormat"], function (NumberFormat) {
 3. **`index.html` uzun süreli cache alıyor.** (Standalone erişimde) `Cache-Control: no-cache` olmalı; hash'li kaynaklar uzun cache alabilir.
 4. **`Component-preload.js` yok.** Preload yoksa onlarca ayrı dosya cache'lenir; bunların tutarsız yaşlanması "yarısı yeni yarısı eski" durumu yaratır.
 5. **Browser/proxy arası bir katman** (kurumsal proxy, CDN) header'ları eziyor.
+6. **UI5 versiyonu sabitlenmemiş.** `index.html` bootstrap'ı versiyonsuzsa veya
+   `ui5.yaml`'da `framework.version` yoksa uygulama SAP'ın yayınladığı yeni sürüme
+   sessizce geçer. Kullanıcı "dün çalışıyordu" der, cache suçlanır — oysa **UI5 sürümü
+   değişmiştir**. Bu, cache sorunu sanılan hataların gerçek kaynağı olabilir.
 
 **Doğrulama adımları (tahmin etme, ölç):**
 ```
@@ -624,7 +650,13 @@ DevTools → Network → Disable cache KAPALI → hard reload olmadan aç
 - CI/CD'de `manifest.json` `applicationVersion.version` + `mta.yaml` `version` **otomatik** artırılsın (semantic-release veya build script).
 - Deploy pipeline'ının son adımı Work Zone site refresh/publish olsun.
 - `Component-preload.js` üretimi zorunlu hale getirilsin (build kontrolü).
+- **UI5 versiyonu her yerde sabitlensin** (`ui5.yaml`, bootstrap, `minUI5Version`).
 - Kullanıcıya "cache temizle" demek bir çözüm değil, **süreç hatasının belirtisidir** — bunu rapora böyle yaz.
+
+> ⚠️ **`ui5 build --all` hakkında:** Bu bayrak bağımlılıkları da build'e dahil eder.
+> Bu stack'te UI5 kütüphaneleri CDN'den / Work Zone'dan geliyorsa `--all` bundle'ı
+> gereksiz büyütebilir. Kullanmadan **önce ve sonra `dist/` boyutunu ölç**; küçülmüyorsa
+> kullanma. Normal CF deploy'u için `ui5 build --clean-dest` yeterlidir.
 
 **Business behaviour etkisi:** Yok. Sadece deployment süreci değişir.
 
@@ -669,10 +701,10 @@ CI pipeline'da `npm run verify` **merge blocker** olmalı. Aksi halde araç kuru
 
 | Issue | Kategori | Playbook bölümü | Öncelik |
 |---|---|---|---|
-| UX-001 | Clean Core / Architecture | 5.7, 5.17, 9.6 | 🔴 CRITICAL |
+| UX-001 | Clean Core / Architecture | 5.7, 5.17 | 🔴 CRITICAL |
 | UX-002 | Controller Architecture | 5.7, 12 | 🟠 HIGH |
 | UX-003 | Rendering / Lifecycle / Security | 5.6, 5.11, 9.4 | 🟠 HIGH |
-| UX-004 | Runtime / OData / Table | 5.4, 5.5, 5.6, 5.8 | 🟠 HIGH |
+| UX-004 | Runtime / OData / Table | 5.4, 5.5, 5.6, 5.8, 9.5–9.9 | 🟠 HIGH |
 | UX-005 | Deployment / Cache | 5.16, 5.1 | 🟠 HIGH |
 | UX-006 | Build / Tooling | 5.15 | 🟠 HIGH |
 
@@ -1106,7 +1138,71 @@ sap.ui.define([
 ```
 > Yalnızca **görüntülenen** alanları `select`'e koy. Kolon gizle/göster varsa gizli kolonların alanlarını da eklemen gerekir — aksi halde kolon açıldığında değer boş gelir. Bu, davranış etkisi olan bir değişikliktir.
 
-### 9.7 BaseController (tekrar eden kodu tek yerde topla)
+### 9.7 Debounce — `liveChange` her tuş vuruşunda tetiklenir
+
+```js
+// ❌ ÖNCE — her karakterde OData + yeniden hesap
+onSearchLiveChange: function (oEvent) {
+    const sQuery = oEvent.getParameter("newValue");
+    this._applyFilter(sQuery);            // her tuşta bir $batch
+}
+```
+
+```js
+// ✅ SONRA — 400 ms sessizlik olunca bir kez çalışır
+onInit: function () {
+    this._iSearchTimer = null;
+},
+
+onSearchLiveChange: function (oEvent) {
+    const sQuery = oEvent.getParameter("newValue");
+    clearTimeout(this._iSearchTimer);
+    this._iSearchTimer = setTimeout(() => {
+        this._applyFilter(sQuery);
+    }, 400);
+},
+
+onExit: function () {
+    clearTimeout(this._iSearchTimer);     // memory management (Bölüm 5.10)
+}
+```
+> Eşik: arama/filtre için 300–500 ms. Daha kısası isteği azaltmaz, daha uzunu yavaş hissettirir.
+
+### 9.8 Döngüde `setProperty` → tek yazma
+
+```js
+// ❌ ÖNCE — 500 satır × 3 alan = 1500 binding tetiklemesi
+aItems.forEach((oItem, i) => {
+    oModel.setProperty(`/items/${i}/status`,  oItem.status);
+    oModel.setProperty(`/items/${i}/total`,   oItem.total);
+    oModel.setProperty(`/items/${i}/visible`, oItem.visible);
+});
+```
+
+```js
+// ✅ SONRA — nesneyi hazırla, bir kez yaz
+const aEnriched = aItems.map((oItem) => ({
+    ...oItem,
+    visible: oItem.visible
+}));
+oModel.setProperty("/items", aEnriched);   // tek güncelleme, tek render
+```
+
+### 9.9 `refresh(true)` → hedefli refresh
+
+```js
+// ❌ ÖNCE — modeldeki TÜM binding'ler tazelenir, ilgisiz tablolar da yeniden okur
+this.getView().getModel().refresh(true);
+```
+
+```js
+// ✅ SONRA — sadece değişen binding
+this.byId("ordersTable").getBinding("items").refresh();
+```
+> `refresh(true)` sadece gerçekten her şeyin bayatladığı durumlarda (ör. toplu backend
+> işlemi sonrası) haklıdır. CRUD sonrası genelde tek binding yeter.
+
+### 9.10 BaseController (tekrar eden kodu tek yerde topla)
 
 ```js
 sap.ui.define([
@@ -1151,7 +1247,7 @@ sap.ui.define([
 });
 ```
 
-### 9.8 Memory-safe route handler
+### 9.11 Memory-safe route handler
 
 ```js
 // ✅ attach eden, detach da eder
@@ -1212,6 +1308,13 @@ onExit: function () {
 ---
 
 ## 11. Rapor Şablonu
+
+**İki kural:**
+
+1. **Her checklist maddesi raporlanır.** Bulgu yoksa `OK` yaz, maddeyi atlama. Atlanan
+   madde "kontrol edilmedi" mi "temiz" mi belli olmaz — rapor güvenilirliğini bitirir.
+2. **Uydurma bulgu üretme.** Rapor dolu görünsün diye varsayımsal problem yazma. Emin
+   değilsen "doğrulanmadı" de ve nasıl doğrulanacağını yaz.
 
 ```markdown
 # <Uygulama Adı> — SAPUI5 Modernizasyon Analizi

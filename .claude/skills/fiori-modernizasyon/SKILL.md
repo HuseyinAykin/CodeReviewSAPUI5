@@ -129,6 +129,17 @@ Sonra şu ayrımı net yap:
 - **Critical path'te olan** → optimize et
 - **Critical path'te olmayan** → lazy-load et
 
+### Adım 3.5 — Bu projede özellikle bakılacaklar
+
+Controller içinde doğrudan yapılan **irsaliye/PDF üretimi, sipariş oluşturma-güncelleme,
+kampanya değerlendirme** gibi domain işleri ara. Bunlar event handling değil iş
+mantığıdır (UX-002). Ayrılacak servis isimleri domain'den gelsin: `PrintService`,
+`OrderService`, `CampaignService`.
+
+Ayrıca UX-004 için şu dört kalıbı özellikle kontrol et:
+`liveChange` debounce yokluğu · döngüde tek tek `setProperty()` ·
+`model.refresh(true)` · ardışık `await` (paralel olabilecekken).
+
 ### Adım 4 — Checklist'i uygula
 
 Modun kapsamına giren kategorileri **PLAYBOOK.md Bölüm 5**'ten uygula (18 kategori). Tümünü context'e yükleme — sadece ilgili bölümü oku.
@@ -197,6 +208,13 @@ Değiştirdiğin dosyaları listele ve şunu net söyle:
 8. Son Mimari
 9. Uygulanmayan Öneriler    → neyi bilerek yapmadın
 ```
+
+**İki kural:**
+
+1. **Her kontrol edilen madde raporlanır.** Bulgu yoksa `OK` yaz, atlama. Atlanan madde
+   "kontrol edilmedi" mi "temiz" mi belli olmaz.
+2. **Uydurma bulgu üretme.** Rapor dolu görünsün diye varsayımsal problem yazma. Emin
+   değilsen "doğrulanmadı" de ve nasıl doğrulanacağını yaz.
 
 Her performans bulgusu şu formatta:
 
